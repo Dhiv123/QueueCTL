@@ -4,6 +4,11 @@ A CLI-based background job queue system built in Python. QueueCTL supports job e
 
 ---
 
+## Demo Video
+
+Watch the demo here: [QueueCTL Demo Video](https://drive.google.com/file/d/17UtI3lkbgD6qrxQujDl-JE7c8kDaMoSD/view?usp=sharing)
+
+---
 ## Features
 
 - Enqueue and manage background jobs  
@@ -116,31 +121,69 @@ queuectl config set max-retries 5
 queuectl config set backoff_base 2
 ```
 ## Architecture Overview
-Job Lifecycle
-State  ------------	Description
-pending	----------- Waiting to be picked up by a worker
-processing --------	Currently being executed
-completed ---------	Successfully executed
-failed ------------	Failed, but retryable
-dead	------------- Permanently failed, moved to DLQ
+
+### Job Lifecycle
+
+| State | Description |
+|-----------|-------------|
+| `pending` | Waiting to be picked up by a worker |
+| `processing` | Currently being executed |
+| `completed` | Successfully executed |
+| `failed` | Failed, but retryable (will retry with backoff) |
+| `dead` | Permanently failed, moved to DLQ |
+
+### Job Flow
+
+1. **Enqueue**: Job is created with state `pending`
+2. **Claim**: Worker atomically claims a job and marks it `processing`
+3. **Execute**: Worker runs the command via subprocess
+4. **Result**:
+   - **Success** (exit code 0) → state becomes `completed`
+   - **Failure** → increments `attempts`, calculates backoff delay
+     - If `attempts <= max_retries` → state becomes `failed`, `next_run_at` set to future time
+     - If `attempts > max_retries` → state becomes `dead` (moved to DLQ)
+
+### Data Persistence
+
+- **Storage**: SQLite database (`queue.db`)
+- **Schema**:
+```sql
+  jobs (
+    id TEXT PRIMARY KEY,
+    command TEXT,
+    state TEXT,
+    attempts INTEGER,
+    max_retries INTEGER,
+    created_at TEXT,
+    updated_at TEXT,
+    next_run_at REAL,
+    last_error TEXT
+  )
+```
+- **Concurrency**: Uses WAL mode + `BEGIN IMMEDIATE` for atomic job claiming
+- **Persistence**: Jobs survive restarts, workers can resume processing
 
 ### Worker Logic
 
-Workers claim jobs atomically from the database (pending or failed jobs ready to run).
+- **Multi-threading**: Each worker process runs N threads (configurable via `--count`)
+- **Job Claiming**: 
+  - Worker loops continuously, calling `claim_one()`
+  - `claim_one()` atomically locks and updates one eligible job
+  - Only jobs with `next_run_at <= now` are eligible
+- **Locking**: Database-level locking prevents duplicate processing
+- **Graceful Shutdown**: Workers finish current job before exiting on SIGTERM/SIGINT
 
-Jobs are executed using the system shell.
+### Retry & Backoff
 
-Exit codes determine job outcome:
+- **Exponential Backoff**: `delay = backoff_base ^ attempts` seconds
+- **Default**: base=2, max_retries=3
+  - Attempt 1: immediate
+  - Attempt 2: retry after 2s
+  - Attempt 3: retry after 4s
+  - Attempt 4: retry after 8s
+  - After attempt 4: moved to DLQ
+- **Configurable**: `queuectl config set max-retries N` and `backoff-base N`
 
-0 → mark as completed
-
-non-zero → retry with exponential backoff or move to DLQ after max retries
-
-### Persistence
-
-All jobs and configuration are stored in queue.db using SQLite.
-
-Ensures jobs survive CLI restarts and multiple worker sessions.
 
 ## Assumptions & Trade-offs
 
@@ -188,12 +231,14 @@ queuectl list --state pending
 
 ## Run Demo
 Linux/macOS
+```bash
 chmod +x demo_run.sh
 ./demo_run.sh
-
+```
 Windows (PowerShell / CMD)
+```bash
 demo_run.bat
-
+```
 
 ### Demo will:
 
@@ -206,3 +251,5 @@ Show job status (pending, completed, dead)
 Retry a DLQ job
 
 Test persistence across restart
+
+
