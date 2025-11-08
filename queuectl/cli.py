@@ -52,47 +52,70 @@ def worker():
     pass
 
 @worker.command("start")
-@click.option("--count", "-c", default=1, help="Number of worker threads inside worker process")
-@click.option("--processes", "-p", default=1, help="How many worker processes to spawn (each process runs --count threads)")
-def worker_start(count: int, processes: int):
-    #Start one or more worker processes.
+@click.option("--count", "-c", default=1, help="Number of worker processes to spawn")
+def worker_start(count: int):
+    """Start one or more worker processes."""
+    
+    # Clean up old pidfile if exists
+    if os.path.exists(PIDFILE):
+        click.echo("Warning: Old pidfile exists. Cleaning up...")
+        try:
+            os.remove(PIDFILE)
+        except Exception:
+            pass
+    
     procs = []
-    for i in range(processes):
-        cmd = [sys.executable, "-m", "queuectl.worker", "--count", str(count)]
+    for i in range(count):
+        cmd = [sys.executable, "-m", "queuectl.worker", "--id", str(i + 1)]
         p = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         procs.append(p.pid)
-    click.echo(f"Spawned worker processes: {procs}")
+    
+    # Write all PIDs to pidfile
+    try:
+        with open(PIDFILE, "w") as f:
+            for pid in procs:
+                f.write(f"{pid}\n")
+    except Exception as e:
+        click.echo(f"Warning: Could not write pidfile: {e}", err=True)
+    
+    click.echo(f"Started {count} worker process(es): {procs}")
     click.echo(f"Worker pidfile location: {os.path.abspath(PIDFILE)}")
 
 @worker.command("stop")
 def worker_stop():
-    #Stop worker processes using pidfile
+    """Stop worker processes using pidfile."""
     if not os.path.exists(PIDFILE):
         click.echo("No worker pidfile found; maybe workers already stopped.")
         return
 
     try:
         with open(PIDFILE, "r") as f:
-            pid = int(f.read().strip().splitlines()[0])
-        click.echo(f"Stopping worker process pid={pid} ...")
+            pids = [int(line.strip()) for line in f if line.strip()]
+        
+        click.echo(f"Stopping {len(pids)} worker process(es): {pids}")
 
-        if os.name == "nt":  
-            subprocess.run(["taskkill", "/F", "/PID", str(pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        else:
-            os.kill(pid, signal.SIGTERM)
+        for pid in pids:
+            try:
+                if os.name == "nt":  
+                    subprocess.run(["taskkill", "/F", "/PID", str(pid)], 
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                else:
+                    os.kill(pid, signal.SIGTERM)
+            except Exception as e:
+                click.echo(f"Could not stop pid {pid}: {e}", err=True)
 
-        # Wait briefly for the process to end
+        # Wait briefly for processes to end
         time.sleep(1.5)
 
-        # Cleanup leftover pidfile manually
+        # Cleanup pidfile
         if os.path.exists(PIDFILE):
             try:
                 os.remove(PIDFILE)
-                click.echo("Worker stopped and pidfile cleaned.")
+                click.echo("All workers stopped and pidfile cleaned.")
             except Exception:
-                click.echo("Worker stopped but could not remove pidfile.")
+                click.echo("Workers stopped but could not remove pidfile.")
         else:
-            click.echo("Stopped successfully.")
+            click.echo("All workers stopped successfully.")
 
     except Exception as e:
         click.echo(f"Error stopping workers: {e}", err=True)
