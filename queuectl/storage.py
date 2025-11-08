@@ -164,9 +164,10 @@ class JobStore:
 
     def schedule_retry_or_dead(self, job_id: str, attempts: int, max_retries: int, last_error: str):
         """
-        If attempts > max_retries -> mark dead.
+        If attempts > max_retries then mark dead.
         Else compute backoff delay = base ** attempts (seconds)
         and set next_run_at = now + delay and state = 'failed'
+        
         """
         base = float(self.config_get("backoff_base") or 2)
         conn = self._conn()
