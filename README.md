@@ -4,6 +4,11 @@ A CLI-based background job queue system built in Python. QueueCTL supports job e
 
 ---
 
+## Demo Video
+
+Watch the demo here: [QueueCTL Demo Video](https://drive.google.com/file/d/17UtI3lkbgD6qrxQujDl-JE7c8kDaMoSD/view?usp=sharing)
+
+---
 ## Features
 
 - Enqueue and manage background jobs  
@@ -246,3 +251,5 @@ Show job status (pending, completed, dead)
 Retry a DLQ job
 
 Test persistence across restart
+
+
