@@ -226,12 +226,14 @@ queuectl list --state pending
 
 ## Run Demo
 Linux/macOS
+```bash
 chmod +x demo_run.sh
 ./demo_run.sh
-
+```
 Windows (PowerShell / CMD)
+```bash
 demo_run.bat
-
+```
 
 ### Demo will:
 
