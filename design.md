@@ -2,27 +2,27 @@
 ## Overview
 QueueCTL is a CLI-based background job queue system that uses SQLite for persistent storage and worker threads for concurrent job processing.
 ## Core Components
-CLI Layer (cli.py)
+### CLI Layer (cli.py)
 
 Handles all user commands: enqueue, worker, status, list, dlq, config
 Parses arguments and delegates to storage/worker modules
 Uses Click framework for command-line interface
 
-## Storage Layer (storage.py)
+### Storage Layer (storage.py)
 
 Manages SQLite database operations
 Provides methods for enqueuing, claiming, and updating jobs
 Uses WAL mode for better concurrency
 Implements atomic job claiming with BEGIN IMMEDIATE transactions
 
-## Worker Layer (worker.py)
+### Worker Layer (worker.py)
 
 Runs worker threads that continuously poll for jobs
 Executes jobs via subprocess
 Handles job completion, failures, and retries
 Implements graceful shutdown on SIGTERM/SIGINT
 
-## Utilities (utils.py)
+### Utilities (utils.py)
 
 Helper functions for timestamp generation
 Shared utility code
