@@ -1,0 +1,12 @@
+# QueueCTL - Requirements File
+# Python >= 3.8 required
+
+# CLI framework
+click>=8.0.0
+
+# No other external dependencies required
+# QueueCTL uses only Python standard library for:
+# - sqlite3 (job storage)
+# - subprocess (job execution)
+# - threading (worker management)
+# - json (data serialization)
