@@ -4,52 +4,45 @@ QueueCTL is a CLI-based background job queue system that uses SQLite for persist
 ## Core Components
 ### CLI Layer (cli.py)
 
-Handles all user commands: enqueue, worker, status, list, dlq, config
-Parses arguments and delegates to storage/worker modules
+Handles all user commands: enqueue, worker, status, list, dlq, config.
+Parses arguments and delegates to storage/worker modules.
 Uses Click framework for command-line interface
 
 ### Storage Layer (storage.py)
 
-Manages SQLite database operations
-Provides methods for enqueuing, claiming, and updating jobs
-Uses WAL mode for better concurrency
-Implements atomic job claiming with BEGIN IMMEDIATE transactions
+Manages SQLite database operations.
+Provides methods for enqueuing, claiming, and updating jobs.
+Uses WAL mode for better concurrency.
+Implements atomic job claiming with BEGIN IMMEDIATE transactions.
 
 ### Worker Layer (worker.py)
 
-Runs worker threads that continuously poll for jobs
-Executes jobs via subprocess
-Handles job completion, failures, and retries
-Implements graceful shutdown on SIGTERM/SIGINT
+Runs worker threads that continuously poll for jobs.
+Executes jobs via subprocess.
+Handles job completion, failures, and retries.
+Implements graceful shutdown.
 
 ### Utilities (utils.py)
 
-Helper functions for timestamp generation
-Shared utility code
+Helper functions for timestamp generation.
+Shared utility code.
 
 ## Job Lifecycle
 Jobs progress through these states:
 
-pending - Waiting to be picked up
-processing - Currently being executed
-completed - Successfully finished
-failed - Failed but will retry
-dead - Permanently failed, moved to DLQ
+pending - Waiting to be picked up.
+processing - Currently being executed.
+completed - Successfully finished.
+failed - Failed but will retry.
+dead - Permanently failed, moved to DLQ.
 
 ## Key Design Decisions
 ### Why SQLite?
 
-Persistent storage without external dependencies
-ACID transactions ensure data consistency
-WAL mode allows concurrent reads while writing
-Single file makes backup and deployment simple
-
-### Why Threads Instead of Processes?
-
-Lower overhead and simpler management
-Shared database connection pool
-Jobs are I/O bound (subprocess execution) so GIL is not a bottleneck
-Easier inter-thread communication for shutdown signals
+Persistent storage without external dependencies.
+ACID transactions ensure data consistency.
+WAL mode allows concurrent reads while writing.
+Single file makes backup and deployment simple.
 
 ### How Concurrency is Handled
 
@@ -80,46 +73,38 @@ jobs table:
 config table:
   - k: configuration key
   - v: configuration value
+  
 ## Worker Process Flow
 Workers follow this loop:
 
-Call claim_one() to atomically claim a pending or failed job
-If no job available, sleep for 2 seconds and retry
-If job claimed, execute command using subprocess
-Check exit code of command
-If successful (exit code 0), mark job as completed
-If failed, calculate backoff delay and either schedule retry or move to DLQ
-Repeat from step 1
+- Worker atomically claims a pending or failed job.
+- If no job available, sleep for 2 seconds and retry.
+- If job claimed, execute command using subprocess.
+- Check exit code of the command.
+- If successful (exit code 0), mark job as completed.
+- If failed, calculate backoff delay and either schedule retry or move to DLQ.
+- Repeat from step 1.
 
 ## Graceful Shutdown
-Workers register signal handlers for SIGTERM and SIGINT. When shutdown signal received:
+When shutdown command received:
 
-Set stop flag on all worker threads
-Workers finish current job before exiting
-No new jobs are claimed
-PID file is cleaned up
+- Workers finish current job before exiting
+- No new jobs are claimed
+- PID file is cleaned up
 
 ## Trade-offs and Assumptions
 Assumptions:
 
-Jobs are trusted shell commands from administrators
-Jobs complete within reasonable timeframes
-Single machine deployment
-Moderate job volume
+- Jobs are trusted shell commands from administrators
+- Jobs completed within reasonable timeframes
+- Moderate job volume
 
 ## Limitations:
 
-No built-in job timeout mechanism
-No job priority support
-No job dependency tracking
-No distributed worker support
-Polling introduces up to 2 second latency
+- No job priority support
+- No job dependency tracking
+- No distributed worker support
 
-### Why These Limitations:
-
-Keeps implementation simple and maintainable
-Satisfies core requirements without overengineering
-Can be extended later if needed
 
 ## File Structure
 QueueCTL/
@@ -138,6 +123,7 @@ QueueCTL/
 ├── setup.py
 ├── queue.db (created at runtime)
 └── queuectl_workers.pid (created when workers start)
+
 ## Testing Approach
 Storage operations (enqueue, claim, update)
 Worker job execution logic
