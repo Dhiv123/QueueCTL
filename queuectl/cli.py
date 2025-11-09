@@ -163,26 +163,45 @@ def dlq_list():
 @dlq.command("retry")
 @click.argument("job_id")
 def dlq_retry(job_id):
-    #Retry a job from DLQ
     store = JobStore()
     store.init_db()
-    job = store.get(job_id)
-    if not job:
-        click.echo("job not found", err=True)
-        return
-    if job["state"] != "dead":
-        click.echo("job is not in DLQ", err=True)
-        return
-
+    
     conn = store._conn()
     cur = conn.cursor()
-    cur.execute(
-        "UPDATE jobs SET state=?, attempts=?, next_run_at=?, updated_at=? WHERE id=?",
-        ("pending", 0, now_ts(), iso_now(), job_id),
-    )
-    conn.commit()
-    conn.close()
-    click.echo(f"Retried job {job_id}")
+    
+    try:
+        # BEGIN IMMEDIATE for locking and writing immediately
+        cur.execute("BEGIN IMMEDIATE")
+        
+        # Now read and update in ONE atomic transaction
+        cur.execute("SELECT state FROM jobs WHERE id=?", (job_id,))
+        row = cur.fetchone()
+        
+        if not row:
+            click.echo("job not found", err=True)
+            conn.rollback()  
+            return
+        
+        if row["state"] != "dead":
+            click.echo("job is not in DLQ", err=True)
+            conn.rollback()  
+            return
+        
+        # Update within the same transaction
+        cur.execute(
+            "UPDATE jobs SET state=?, attempts=?, next_run_at=?, updated_at=? WHERE id=?",
+            ("pending", 0, now_ts(), iso_now(), job_id),
+        )
+        
+         # Commit and release lock
+        conn.commit()  
+        click.echo(f"Retried job {job_id}")
+        
+    except Exception as e:
+        conn.rollback()
+        click.echo(f"Error: {e}", err=True)
+    finally:
+        conn.close()
 
 
 # CONFIG COMMANDS
