@@ -22,7 +22,7 @@ def main():
 @main.command()
 @click.argument("job_json", type=str)
 def enqueue(job_json):
-    """Add a new job to the queue."""
+    # Add a new job to the queue
     store = JobStore()
     store.init_db()
     try:
