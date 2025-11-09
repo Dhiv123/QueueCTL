@@ -49,7 +49,7 @@ class Worker:
 PIDFILE = "queuectl_workers.pid"
 
 def run_worker_blocking(worker_id=1):
-    """Start a single worker in this process (blocking)."""
+    # Blocking worker process
     store = JobStore()
     store.init_db()
     
