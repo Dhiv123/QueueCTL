@@ -17,8 +17,6 @@ Watch the demo here: [QueueCTL Demo Video](https://drive.google.com/file/d/17UtI
 - Clean CLI interface with full configuration management  
 - Minimal testing and demo scripts included  
 
----
-
 ## Setup Instructions
 
 ### Prerequisites
