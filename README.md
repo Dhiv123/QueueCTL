@@ -143,7 +143,7 @@ queuectl config set backoff_base 2
   )
 ```
 - **Concurrency**: Uses WAL mode + `BEGIN IMMEDIATE` for atomic job claiming
-- **Persistence**: Jobs survive restarts, workers can resume processing
+- **Persistence**: Jobs survive restarts, and workers can resume processing
 
 ### Worker Logic
 
@@ -151,7 +151,7 @@ queuectl config set backoff_base 2
   - Worker loops continuously, claiming pending jobs.
   - The system atomically locks and updates one eligible job
 - **Locking**: Database-level locking prevents duplicate processing
-- **Graceful Shutdown**: Workers finish current job before exiting on SIGTERM/SIGINT
+- **Graceful Shutdown**: Workers finish current job before exiting. 
 
 ### Retry & Backoff
 
