@@ -41,7 +41,7 @@ sleep 5
 echo "Status after retry:"
 queuectl status
 
-# 8️⃣ Persistence test
+#  Persistence test
 echo "Persistence test: restart CLI simulation..."
 queuectl enqueue '{"id":"job_demo_persist","command":"sleep 1"}'
 echo "Simulating restart... (close and reopen CLI)"
