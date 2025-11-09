@@ -125,14 +125,14 @@ QueueCTL/
 - └── queuectl_workers.pid (created when workers start)
 
 ## Testing Approach
-Storage operations (enqueue, claim, update)
-Worker job execution logic
-Retry and backoff calculations
-Graceful shutdown behavior
-End-to-end job processing
-Multiple concurrent workers
-Job persistence across restarts
-DLQ functionality
+-vStorage operations (enqueue, claim, update)
+- Worker job execution logic
+- Retry and backoff calculations
+- Graceful shutdown behavior
+- End-to-end job processing
+- Multiple concurrent workers
+- Job persistence across restarts
+- DLQ functionality
 
 Security Considerations
 Commands are executed with shell=True, which allows shell features but introduces command injection risk if job data comes from untrusted sources. Current implementation assumes trusted input from CLI only. For production use with untrusted input, command validation and whitelisting should be added.
