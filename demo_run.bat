@@ -34,8 +34,6 @@ REM Retry a dead job
 echo Retrying a DLQ job (job_demo_2)...
 queuectl dlq retry job_demo_2
 
-REM Wait for retry to process
-timeout /t 5
 
 echo Status after retry:
 queuectl status
