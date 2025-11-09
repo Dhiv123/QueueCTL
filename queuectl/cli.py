@@ -15,11 +15,10 @@ PIDFILE = "queuectl_workers.pid"
 
 @click.group()
 def main():
-    """QueueCTL - CLI-based background job queue system."""
+    #QueueCTL - CLI-based background job queue system.
     pass
 
 # ENQUEUE
-
 @main.command()
 @click.argument("job_json", type=str)
 def enqueue(job_json):
@@ -30,7 +29,7 @@ def enqueue(job_json):
         # Try parsing normally
         job = json.loads(job_json)
     except json.JSONDecodeError:
-        # PowerShell/CMD safe fallback: fix stripped quotes
+        # PowerShell/CMD safe fallback to fix stripped quotes
         fixed = job_json.strip()
         if fixed.startswith("{") and not '"' in fixed:
             # Replace single quotes with double quotes
@@ -45,17 +44,15 @@ def enqueue(job_json):
 
 
 # WORKER COMMANDS
-
 @main.group()
 def worker():
-    #Manage worker processes
+    # Manage worker processes
     pass
 
 @worker.command("start")
 @click.option("--count", "-c", default=1, help="Number of worker processes to spawn")
 def worker_start(count: int):
-    """Start one or more worker processes."""
-    
+    # Start one or more worker processes.
     # Clean up old pidfile if exists
     if os.path.exists(PIDFILE):
         click.echo("Warning: Old pidfile exists. Cleaning up...")
@@ -83,7 +80,7 @@ def worker_start(count: int):
 
 @worker.command("stop")
 def worker_stop():
-    """Stop worker processes using pidfile."""
+    # Stop worker processes using pidfile.
     if not os.path.exists(PIDFILE):
         click.echo("No worker pidfile found; maybe workers already stopped.")
         return
@@ -121,11 +118,10 @@ def worker_stop():
         click.echo(f"Error stopping workers: {e}", err=True)
 
 # LIST & STATUS COMMANDS
-
 @main.command("list")
 @click.option("--state", type=click.Choice(["pending", "processing", "completed", "failed", "dead"]), default=None)
 def list_jobs(state: Optional[str]):
-    """List jobs by state (or all if no --state)."""
+    # List jobs by state or all if no --state
     store = JobStore()
     store.init_db()
     rows = store.list_by_state(state) if state else store.list_by_state(None)
@@ -134,7 +130,7 @@ def list_jobs(state: Optional[str]):
 
 @main.command("status")
 def status():
-    """Show summary of all job states and active workers."""
+    # Show summary of all job states and active workers
     store = JobStore()
     store.init_db()
     counts = {s: len(store.list_by_state(s)) for s in ["pending", "processing", "completed", "failed", "dead"]}
@@ -148,8 +144,8 @@ def status():
     else:
         click.echo("No worker pidfile found.")
 
-# DLQ COMMANDS
 
+# DLQ COMMANDS
 @main.group()
 def dlq():
 
@@ -188,11 +184,10 @@ def dlq_retry(job_id):
     conn.close()
     click.echo(f"Retried job {job_id}")
 
-# CONFIG COMMANDS
 
+# CONFIG COMMANDS
 @main.group()
 def config():
-
     pass
 
 @config.command("set")
