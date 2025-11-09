@@ -108,21 +108,21 @@ Assumptions:
 
 ## File Structure
 QueueCTL/
-├── queuectl/
-│   ├── __init__.py
-│   ├── cli.py
-│   ├── storage.py
-│   ├── worker.py
-│   └── utils.py
-├── tests/
-│   ├── test_storage.py
-│   └── test_worker.py
-├── README.md
-├── design.md
-├── requirements.txt
-├── setup.py
-├── queue.db (created at runtime)
-└── queuectl_workers.pid (created when workers start)
+- ├── queuectl/
+- │   ├── __init__.py
+- │   ├── cli.py
+- │   ├── storage.py
+- │   ├── worker.py
+- │   └── utils.py
+-├── tests/
+- │   ├── test_storage.py
+- │   └── test_worker.py
+- ├── README.md
+- ├── design.md
+- ├── requirements.txt
+- ├── setup.py
+- ├── queue.db (created at runtime)
+- └── queuectl_workers.pid (created when workers start)
 
 ## Testing Approach
 Storage operations (enqueue, claim, update)
