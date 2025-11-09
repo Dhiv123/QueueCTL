@@ -47,20 +47,6 @@ python -m queuectl init
 
 ```
 
-## (Optional) Create a virtual environment
-```bash
-python -m venv venv
-source venv/bin/activate      # Linux/macOS
-venv\Scripts\activate         # Windows
-```
-### Install dependencies
-```bash
-pip install -r requirements.txt
-```
-### Initialize the database
-```bash
-python -m queuectl init
-```
 ## Usage Examples
 ### Enqueue a Job
 ```bash
