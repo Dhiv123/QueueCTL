@@ -28,7 +28,7 @@ Watch the demo here: [QueueCTL Demo Video](https://drive.google.com/file/d/17UtI
 ### Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/QueueCTL.git
+git clone https://github.com/Dhiv123/QueueCTL.git
 cd QueueCTL
 ```
 ### (Optional) Create a virtual environment
