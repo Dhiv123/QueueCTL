@@ -37,7 +37,7 @@ class JobStore:
         self.path = path
 
     def _conn(self):
-        # open a sqlite connection with row factory for name based access
+        # open a sqlite connection with row factory for name-based access
         conn = sqlite3.connect(self.path, timeout=30, isolation_level=None)
         conn.row_factory = sqlite3.Row
         return conn
