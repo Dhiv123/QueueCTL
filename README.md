@@ -147,11 +147,9 @@ queuectl config set backoff_base 2
 
 ### Worker Logic
 
-- **Multi-threading**: Each worker process runs N threads (configurable via `--count`)
 - **Job Claiming**: 
-  - Worker loops continuously, calling `claim_one()`
-  - `claim_one()` atomically locks and updates one eligible job
-  - Only jobs with `next_run_at <= now` are eligible
+  - Worker loops continuously, claiming pending jobs.
+  - The system atomically locks and updates one eligible job
 - **Locking**: Database-level locking prevents duplicate processing
 - **Graceful Shutdown**: Workers finish current job before exiting on SIGTERM/SIGINT
 
